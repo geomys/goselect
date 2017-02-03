@@ -7,6 +7,7 @@ package base
 import (
 	"flag"
 
+	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/str"
 )
 
@@ -29,6 +30,6 @@ func (v *StringsFlag) String() string {
 
 // AddBuildFlagsNX adds the -n and -x build flags to the flag set.
 func AddBuildFlagsNX(flags *flag.FlagSet) {
-	flags.BoolVar(&BuildN, "n", false, "")
-	flags.BoolVar(&BuildX, "x", false, "")
+	flags.BoolVar(&cfg.BuildN, "n", false, "")
+	flags.BoolVar(&cfg.BuildX, "x", false, "")
 }
