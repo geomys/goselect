@@ -17,6 +17,8 @@ import (
 	"testing"
 	"time"
 
+	"geomys.org/goup/internal/std/testenv"
+
 	"geomys.org/goup/internal/go/lockedfile/internal/filelock"
 )
 
@@ -184,6 +186,8 @@ func TestRLockExcludesOnlyLock(t *testing.T) {
 }
 
 func TestLockNotDroppedByExecCommand(t *testing.T) {
+	testenv.MustHaveExec(t)
+
 	f, remove := mustTempFile(t)
 	defer remove()
 
