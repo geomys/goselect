@@ -3,3 +3,25 @@
 // license that can be found in the LICENSE file.
 
 package modload
+
+import (
+	"os"
+	"path/filepath"
+)
+
+func findModuleRoot(dir string) (root string) {
+	dir = filepath.Clean(dir)
+
+	// Look for enclosing go.mod.
+	for {
+		if fi, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil && !fi.IsDir() {
+			return dir
+		}
+		d := filepath.Dir(dir)
+		if d == dir {
+			break
+		}
+		dir = d
+	}
+	return ""
+}
