@@ -6,11 +6,11 @@ package modfetch
 
 import (
 	"fmt"
-	"os"
 	pathpkg "path"
 	"strings"
 
 	"geomys.org/goup/internal/go/base"
+	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/get"
 	"geomys.org/goup/internal/go/module"
 )
@@ -67,7 +67,7 @@ func useNotary(mod module.Version) bool {
 	if get.Insecure {
 		return false
 	}
-	wantNotary, err := notaryShouldVerify(mod.Path, os.Getenv("GONOVERIFY"))
+	wantNotary, err := notaryShouldVerify(mod.Path, cfg.Getenv("GONOVERIFY"))
 	if err != nil {
 		base.Fatalf("%v", err)
 	}

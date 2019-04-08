@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
 	"geomys.org/goup/internal/go/base"
+	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/modfetch/codehost"
 	"geomys.org/goup/internal/go/module"
 	"geomys.org/goup/internal/go/semver"
@@ -85,7 +85,7 @@ cached module versions with GOPROXY=https://example.com/proxy.
 `,
 }
 
-var proxyURL = os.Getenv("GOPROXY")
+var proxyURL = cfg.Getenv("GOPROXY")
 
 // SetProxy sets the proxy to use when fetching modules.
 // It accepts the same syntax as the GOPROXY environment variable,
