@@ -17,6 +17,7 @@ import (
 	"geomys.org/goup/internal/go/modfetch/codehost"
 	"geomys.org/goup/internal/go/par"
 	"geomys.org/goup/internal/go/semver"
+	"geomys.org/goup/internal/go/str"
 	web "geomys.org/goup/internal/go/web"
 )
 
@@ -205,10 +206,9 @@ func lookup(path string) (r Repo, err error) {
 	if proxyURL == "off" {
 		return nil, fmt.Errorf("module lookup disabled by GOPROXY=%s", proxyURL)
 	}
-	if proxyURL != "" && proxyURL != "direct" {
+	if proxyURL != "" && proxyURL != "direct" && !str.GlobsMatchPath(cfg.GONOPROXY, path) {
 		return lookupProxy(path)
 	}
-
 	return lookupDirect(path)
 }
 
