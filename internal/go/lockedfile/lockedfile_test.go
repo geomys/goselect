@@ -3,8 +3,8 @@
 // license that can be found in the LICENSE file.
 
 // js and nacl do not support inter-process file locking.
-//go:build !js && !nacl
-// +build !js,!nacl
+//go:build !js
+// +build !js
 
 package lockedfile_test
 
