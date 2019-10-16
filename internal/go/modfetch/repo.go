@@ -17,9 +17,10 @@ import (
 	"geomys.org/goup/internal/go/get"
 	"geomys.org/goup/internal/go/modfetch/codehost"
 	"geomys.org/goup/internal/go/par"
-	"geomys.org/goup/internal/go/semver"
 	"geomys.org/goup/internal/go/str"
 	web "geomys.org/goup/internal/go/web"
+
+	"golang.org/x/mod/semver"
 )
 
 const traceRepo = false // trace all repo actions, for debugging

@@ -40,9 +40,10 @@ import (
 	"strings"
 	"time"
 
-	"geomys.org/goup/internal/go/module"
-	"geomys.org/goup/internal/go/semver"
 	"geomys.org/goup/internal/std/lazyregexp"
+
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 )
 
 var pseudoVersionRE = lazyregexp.New(`^v[0-9]+\.(0\.0-|\d+\.\d+-([^+]*\.)?0\.)\d{14}-[A-Za-z0-9]+(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`)

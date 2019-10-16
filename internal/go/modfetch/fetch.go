@@ -19,10 +19,11 @@ import (
 
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
-	"geomys.org/goup/internal/go/dirhash"
-	"geomys.org/goup/internal/go/module"
 	"geomys.org/goup/internal/go/par"
 	"geomys.org/goup/internal/go/renameio"
+
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/sumdb/dirhash"
 )
 
 var downloadCache par.Cache

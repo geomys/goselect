@@ -25,11 +25,11 @@ import (
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/get"
 	"geomys.org/goup/internal/go/lockedfile"
-	"geomys.org/goup/internal/go/module"
-	"geomys.org/goup/internal/go/note"
 	"geomys.org/goup/internal/go/str"
-	"geomys.org/goup/internal/go/sumdb"
 	"geomys.org/goup/internal/go/web"
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/sumdb"
+	"golang.org/x/mod/sumdb/note"
 )
 
 // useSumDB reports whether to use the Go checksum database for the given module.

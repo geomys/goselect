@@ -15,8 +15,8 @@ import (
 	"strings"
 
 	"geomys.org/goup/internal/go/modfetch/codehost"
-	"geomys.org/goup/internal/go/module"
 	"geomys.org/goup/internal/go/str"
+	"golang.org/x/mod/module"
 )
 
 func Unzip(dir, zipfile, prefix string, maxSize int64) error {

@@ -22,9 +22,10 @@ import (
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/modfetch/codehost"
-	"geomys.org/goup/internal/go/module"
-	"geomys.org/goup/internal/go/semver"
 	"geomys.org/goup/internal/go/web"
+
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 )
 
 var HelpGoproxy = &base.Command{

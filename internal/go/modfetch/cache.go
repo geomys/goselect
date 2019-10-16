@@ -18,10 +18,11 @@ import (
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/lockedfile"
 	"geomys.org/goup/internal/go/modfetch/codehost"
-	"geomys.org/goup/internal/go/module"
 	"geomys.org/goup/internal/go/par"
 	"geomys.org/goup/internal/go/renameio"
-	"geomys.org/goup/internal/go/semver"
+
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 )
 
 var QuietLookup bool // do not print about lookups
