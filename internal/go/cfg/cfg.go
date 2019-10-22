@@ -34,7 +34,6 @@ var (
 	BuildN                 bool               // -n flag
 	BuildO                 string             // -o flag
 	BuildP                 = runtime.NumCPU() // -p flag
-	BuildModcacheRW        bool               // -modcacherw flag
 	BuildPkgdir            string             // -pkgdir flag
 	BuildRace              bool               // -race flag
 	BuildToolexec          []string           // -toolexec flag
@@ -45,6 +44,8 @@ var (
 	BuildV                 bool // -v flag
 	BuildWork              bool // -work flag
 	BuildX                 bool // -x flag
+
+	ModCacheRW bool // -modcacherw flag
 
 	CmdName string // "build", "install", "list", "mod tidy", etc.
 
