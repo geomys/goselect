@@ -10,6 +10,9 @@ import (
 )
 
 func findModuleRoot(dir string) (root string) {
+	if dir == "" {
+		panic("dir not set")
+	}
 	dir = filepath.Clean(dir)
 
 	// Look for enclosing go.mod.
