@@ -18,7 +18,7 @@ import (
 	"geomys.org/goup/internal/go/cfg"
 )
 
-func checkEnvWrite(key, val string, env []cfg.EnvVar) error {
+func checkEnvWrite(key, val string) error {
 	switch key {
 	case "GOEXE", "GOGCCFLAGS", "GOHOSTARCH", "GOHOSTOS", "GOMOD", "GOTOOLDIR":
 		return fmt.Errorf("%s cannot be modified", key)
