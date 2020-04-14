@@ -52,6 +52,7 @@ var (
 	CmdName string // "build", "install", "list", "mod tidy", etc.
 
 	DebugActiongraph string // -debug-actiongraph flag (undocumented, unstable)
+	DebugTrace       string // -debug-trace flag
 )
 
 func defaultContext() build.Context {
