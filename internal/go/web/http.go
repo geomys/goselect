@@ -14,6 +14,7 @@ package web
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"mime"
 	"net/http"
@@ -47,6 +48,13 @@ var securityPreservingHTTPClient = &http.Client{
 		if len(via) > 0 && via[0].URL.Scheme == "https" && req.URL.Scheme != "https" {
 			lastHop := via[len(via)-1].URL
 			return fmt.Errorf("redirected from secure URL %s to insecure URL %s", lastHop, req.URL)
+		}
+
+		// Go's http.DefaultClient allows 10 redirects before returning an error.
+		// The securityPreservingHTTPClient also uses this default policy to avoid
+		// Go command hangs.
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
 		}
 		return nil
 	},
