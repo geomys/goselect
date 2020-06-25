@@ -16,9 +16,9 @@ import (
 	"geomys.org/goup/internal/go/get"
 	"geomys.org/goup/internal/go/modfetch/codehost"
 	"geomys.org/goup/internal/go/par"
-	"geomys.org/goup/internal/go/str"
 	web "geomys.org/goup/internal/go/web"
 
+	"golang.org/x/mod/module"
 	"golang.org/x/mod/semver"
 )
 
@@ -217,7 +217,7 @@ func lookup(proxy, path string) (r Repo, err error) {
 		return nil, errLookupDisabled
 	}
 
-	if str.GlobsMatchPath(cfg.GONOPROXY, path) {
+	if module.MatchPrefixPatterns(cfg.GONOPROXY, path) {
 		switch proxy {
 		case "noproxy", "direct":
 			return lookupDirect(path)
