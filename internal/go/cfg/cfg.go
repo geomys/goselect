@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/build"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,6 +19,8 @@ import (
 	"sync"
 
 	"geomys.org/goup/internal/std/cfg"
+
+	"geomys.org/goup/internal/go/fsys"
 
 	"geomys.org/goup/internal/cmd/objabi"
 )
@@ -103,6 +106,15 @@ func defaultContext() build.Context {
 		// So ctxt.CgoEnabled (== go/build.Default.CgoEnabled) is correct
 		// as is and can be left unmodified.
 		// Nothing to do here.
+	}
+
+	ctxt.OpenFile = func(path string) (io.ReadCloser, error) {
+		return fsys.Open(path)
+	}
+	ctxt.ReadDir = fsys.ReadDir
+	ctxt.IsDir = func(path string) bool {
+		isDir, err := fsys.IsDir(path)
+		return err == nil && isDir
 	}
 
 	return ctxt
