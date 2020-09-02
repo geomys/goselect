@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"geomys.org/goup/internal/go/cfg"
-	"geomys.org/goup/internal/go/get"
 	"geomys.org/goup/internal/go/modfetch/codehost"
 	"geomys.org/goup/internal/go/par"
+	"geomys.org/goup/internal/go/vcs"
 	web "geomys.org/goup/internal/go/web"
 
 	"golang.org/x/mod/module"
@@ -261,13 +261,13 @@ func lookupDirect(path string) (Repo, error) {
 	if allowInsecure(path) {
 		security = web.Insecure
 	}
-	rr, err := get.RepoRootForImportPath(path, get.PreferMod, security)
+	rr, err := vcs.RepoRootForImportPath(path, vcs.PreferMod, security)
 	if err != nil {
 		// We don't know where to find code for a module with this path.
 		return nil, notExistError{err: err}
 	}
 
-	if rr.VCS == "mod" {
+	if rr.VCS.Name == "mod" {
 		// Fetch module from proxy with base URL rr.Repo.
 		return newProxyRepo(rr.Repo, path)
 	}
@@ -279,8 +279,8 @@ func lookupDirect(path string) (Repo, error) {
 	return newCodeRepo(code, rr.Root, path)
 }
 
-func lookupCodeRepo(rr *get.RepoRoot) (codehost.Repo, error) {
-	code, err := codehost.NewRepo(rr.VCS, rr.Repo)
+func lookupCodeRepo(rr *vcs.RepoRoot) (codehost.Repo, error) {
+	code, err := codehost.NewRepo(rr.VCS.Cmd, rr.Repo)
 	if err != nil {
 		if _, ok := err.(*codehost.VCSError); ok {
 			return nil, err
@@ -306,7 +306,7 @@ func ImportRepoRev(path, rev string) (Repo, *RevInfo, error) {
 	if allowInsecure(path) {
 		security = web.Insecure
 	}
-	rr, err := get.RepoRootForImportPath(path, get.IgnoreMod, security)
+	rr, err := vcs.RepoRootForImportPath(path, vcs.IgnoreMod, security)
 	if err != nil {
 		return nil, nil, err
 	}
