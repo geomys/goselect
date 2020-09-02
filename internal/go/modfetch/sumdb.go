@@ -23,7 +23,6 @@ import (
 
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
-	"geomys.org/goup/internal/go/get"
 	"geomys.org/goup/internal/go/lockedfile"
 	"geomys.org/goup/internal/go/web"
 
@@ -34,7 +33,7 @@ import (
 
 // useSumDB reports whether to use the Go checksum database for the given module.
 func useSumDB(mod module.Version) bool {
-	return cfg.GOSUMDB != "off" && !get.Insecure && !module.MatchPrefixPatterns(cfg.GONOSUMDB, mod.Path)
+	return cfg.GOSUMDB != "off" && !cfg.Insecure && !module.MatchPrefixPatterns(cfg.GONOSUMDB, mod.Path)
 }
 
 // lookupSumDB returns the Go checksum database's go.sum lines for the given module,
