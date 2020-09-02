@@ -9,6 +9,23 @@ import (
 	"path/filepath"
 )
 
+type Root int
+
+const (
+	// AutoRoot is the default for most commands. modload.Init will look for
+	// a go.mod file in the current directory or any parent. If none is found,
+	// modules may be disabled (GO111MODULE=on) or commands may run in a
+	// limited module mode.
+	AutoRoot Root = iota
+
+	// NoRoot is used for commands that run in module mode and ignore any go.mod
+	// file the current directory or in parent directories.
+	NoRoot
+
+	// TODO(jayconrod): add NeedRoot for commands like 'go mod vendor' that
+	// don't make sense without a main module.
+)
+
 func findModuleRoot(dir string) (root string) {
 	if dir == "" {
 		panic("dir not set")
