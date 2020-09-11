@@ -22,8 +22,9 @@ const (
 	// file the current directory or in parent directories.
 	NoRoot
 
-	// TODO(jayconrod): add NeedRoot for commands like 'go mod vendor' that
-	// don't make sense without a main module.
+	// NeedRoot is used for commands that must run in module mode and don't
+	// make sense without a main module.
+	NeedRoot
 )
 
 func findModuleRoot(dir string) (root string) {
