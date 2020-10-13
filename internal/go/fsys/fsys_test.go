@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"geomys.org/goup/internal/go/txtar"
+	"geomys.org/goup/internal/std/testenv"
 )
 
 // initOverlay resets the overlay state to reflect the config.
@@ -655,6 +656,8 @@ func TestWalk_Error(t *testing.T) {
 }
 
 func TestWalk_Symlink(t *testing.T) {
+	testenv.MustHaveSymlink(t)
+
 	initOverlay(t, `{
 	"Replace": {"overlay_symlink": "symlink"}
 }
