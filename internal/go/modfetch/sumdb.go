@@ -13,8 +13,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -229,7 +229,7 @@ func (*dbClient) WriteConfig(file string, old, new []byte) error {
 		return err
 	}
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
