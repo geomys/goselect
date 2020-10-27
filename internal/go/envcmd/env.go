@@ -20,7 +20,7 @@ import (
 
 func checkEnvWrite(key, val string) error {
 	switch key {
-	case "GOEXE", "GOGCCFLAGS", "GOHOSTARCH", "GOHOSTOS", "GOMOD", "GOTOOLDIR":
+	case "GOEXE", "GOGCCFLAGS", "GOHOSTARCH", "GOHOSTOS", "GOMOD", "GOTOOLDIR", "GOVERSION":
 		return fmt.Errorf("%s cannot be modified", key)
 	case "GOENV":
 		return fmt.Errorf("%s can only be set using the OS environment", key)
