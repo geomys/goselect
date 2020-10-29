@@ -7,7 +7,6 @@ package envcmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -72,7 +71,7 @@ func updateEnvFile(add map[string]string, del map[string]bool) {
 	if file == "" {
 		base.Fatalf("go env: cannot find go env config: %v", err)
 	}
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil && (!os.IsNotExist(err) || len(add) == 0) {
 		base.Fatalf("go env: reading go env config: %v", err)
 	}
@@ -126,11 +125,11 @@ func updateEnvFile(add map[string]string, del map[string]bool) {
 	}
 
 	data = []byte(strings.Join(lines, ""))
-	err = ioutil.WriteFile(file, data, 0666)
+	err = os.WriteFile(file, data, 0666)
 	if err != nil {
 		// Try creating directory.
 		os.MkdirAll(filepath.Dir(file), 0777)
-		err = ioutil.WriteFile(file, data, 0666)
+		err = os.WriteFile(file, data, 0666)
 		if err != nil {
 			base.Fatalf("go env: writing go env config: %v", err)
 		}
