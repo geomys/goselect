@@ -269,6 +269,7 @@ var (
 	GONOPROXY  = envOr("GONOPROXY", GOPRIVATE)
 	GONOSUMDB  = envOr("GONOSUMDB", GOPRIVATE)
 	GOINSECURE = Getenv("GOINSECURE")
+	GOVCS      = Getenv("GOVCS")
 )
 
 var SumdbDir = gopathDir("pkg/sumdb")
