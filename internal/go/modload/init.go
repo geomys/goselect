@@ -5,8 +5,9 @@
 package modload
 
 import (
-	"os"
 	"path/filepath"
+
+	"geomys.org/goup/internal/go/fsys"
 )
 
 type Root int
@@ -35,7 +36,7 @@ func findModuleRoot(dir string) (root string) {
 
 	// Look for enclosing go.mod.
 	for {
-		if fi, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil && !fi.IsDir() {
+		if fi, err := fsys.Stat(filepath.Join(dir, "go.mod")); err == nil && !fi.IsDir() {
 			return dir
 		}
 		d := filepath.Dir(dir)
