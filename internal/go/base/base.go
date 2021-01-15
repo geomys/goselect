@@ -12,9 +12,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 	"sync"
+
+	exec "geomys.org/goup/internal/std/execabs"
 
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/str"

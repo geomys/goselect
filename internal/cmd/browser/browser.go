@@ -7,9 +7,10 @@ package browser
 
 import (
 	"os"
-	"os/exec"
 	"runtime"
 	"time"
+
+	exec "geomys.org/goup/internal/std/execabs"
 )
 
 // Commands returns a list of possible commands to use to open a url.
