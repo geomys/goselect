@@ -28,7 +28,7 @@ import (
 	"geomys.org/goup/internal/go/cfg"
 )
 
-// impatientInsecureHTTPClient is used in -insecure mode,
+// impatientInsecureHTTPClient is used with GOINSECURE,
 // when we're connecting to https servers that might not be there
 // or might be using self-signed certificates.
 var impatientInsecureHTTPClient = &http.Client{
