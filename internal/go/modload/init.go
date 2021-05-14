@@ -4,12 +4,6 @@
 
 package modload
 
-import (
-	"path/filepath"
-
-	"geomys.org/goup/internal/go/fsys"
-)
-
 type Root int
 
 const (
@@ -27,23 +21,3 @@ const (
 	// make sense without a main module.
 	NeedRoot
 )
-
-func findModuleRoot(dir string) (root string) {
-	if dir == "" {
-		panic("dir not set")
-	}
-	dir = filepath.Clean(dir)
-
-	// Look for enclosing go.mod.
-	for {
-		if fi, err := fsys.Stat(filepath.Join(dir, "go.mod")); err == nil && !fi.IsDir() {
-			return dir
-		}
-		d := filepath.Dir(dir)
-		if d == dir {
-			break
-		}
-		dir = d
-	}
-	return ""
-}
