@@ -4,6 +4,13 @@
 
 package modload
 
+import (
+	"path/filepath"
+
+	"geomys.org/goup/internal/go/cfg"
+	"geomys.org/goup/internal/go/fsys"
+)
+
 type Root int
 
 const (
@@ -21,3 +28,28 @@ const (
 	// make sense without a main module.
 	NeedRoot
 )
+
+func findWorkspaceFile(dir string) (root string) {
+	if dir == "" {
+		panic("dir not set")
+	}
+	dir = filepath.Clean(dir)
+
+	// Look for enclosing go.mod.
+	for {
+		f := filepath.Join(dir, "go.work")
+		if fi, err := fsys.Stat(f); err == nil && !fi.IsDir() {
+			return f
+		}
+		d := filepath.Dir(dir)
+		if d == dir {
+			break
+		}
+		if d == cfg.GOROOT {
+			_ = TODOWorkspaces("Address how go.work files interact with GOROOT")
+			return "" // As a special case, don't cross GOROOT to find a go.work file.
+		}
+		dir = d
+	}
+	return ""
+}
