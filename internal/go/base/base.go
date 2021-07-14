@@ -17,8 +17,8 @@ import (
 
 	exec "geomys.org/goup/internal/std/execabs"
 
+	"geomys.org/goup/internal/cmd/str"
 	"geomys.org/goup/internal/go/cfg"
-	"geomys.org/goup/internal/go/str"
 )
 
 // A Command is an implementation of a go command
