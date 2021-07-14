@@ -7,9 +7,9 @@ package base
 import (
 	"flag"
 
+	"geomys.org/goup/internal/cmd/str"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/fsys"
-	"geomys.org/goup/internal/go/str"
 )
 
 // A StringsFlag is a command-line flag that interprets its argument
