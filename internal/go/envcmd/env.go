@@ -13,6 +13,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"geomys.org/goup/internal/cmd/str"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 )
@@ -47,10 +48,23 @@ func checkEnvWrite(key, val string) error {
 		if !filepath.IsAbs(val) && val != "" {
 			return fmt.Errorf("GOPATH entry is relative; must be absolute path: %q", val)
 		}
-	// Make sure CC and CXX are absolute paths
-	case "CC", "CXX", "GOMODCACHE":
-		if !filepath.IsAbs(val) && val != "" && val != filepath.Base(val) {
-			return fmt.Errorf("%s entry is relative; must be absolute path: %q", key, val)
+	case "GOMODCACHE":
+		if !filepath.IsAbs(val) && val != "" {
+			return fmt.Errorf("GOMODCACHE entry is relative; must be absolute path: %q", val)
+		}
+	case "CC", "CXX":
+		if val == "" {
+			break
+		}
+		args, err := str.SplitQuotedFields(val)
+		if err != nil {
+			return fmt.Errorf("invalid %s: %v", key, err)
+		}
+		if len(args) == 0 {
+			return fmt.Errorf("%s entry cannot contain only space", key)
+		}
+		if !filepath.IsAbs(args[0]) && args[0] != filepath.Base(args[0]) {
+			return fmt.Errorf("%s entry is relative; must be absolute path: %q", key, args[0])
 		}
 	}
 
