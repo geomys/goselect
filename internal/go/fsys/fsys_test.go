@@ -11,8 +11,9 @@ import (
 	"reflect"
 	"testing"
 
-	"geomys.org/goup/internal/go/txtar"
 	"geomys.org/goup/internal/std/testenv"
+
+	"golang.org/x/tools/txtar"
 )
 
 // initOverlay resets the overlay state to reflect the config.
