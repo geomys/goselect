@@ -7,6 +7,7 @@ package modload
 import (
 	"path/filepath"
 
+	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/fsys"
 )
 
@@ -15,7 +16,7 @@ type Root int
 const (
 	// AutoRoot is the default for most commands. modload.Init will look for
 	// a go.mod file in the current directory or any parent. If none is found,
-	// modules may be disabled (GO111MODULE=on) or commands may run in a
+	// modules may be disabled (GO111MODULE=auto) or commands may run in a
 	// limited module mode.
 	AutoRoot Root = iota
 
@@ -28,7 +29,7 @@ const (
 	NeedRoot
 )
 
-func findModuleRoot(dir string) (root string) {
+func findModuleRoot(dir string) (roots string) {
 	if dir == "" {
 		panic("dir not set")
 	}
@@ -42,6 +43,32 @@ func findModuleRoot(dir string) (root string) {
 		d := filepath.Dir(dir)
 		if d == dir {
 			break
+		}
+		dir = d
+	}
+	return ""
+}
+
+func findWorkspaceFile(dir string) (root string) {
+	if dir == "" {
+		panic("dir not set")
+	}
+	dir = filepath.Clean(dir)
+
+	// Look for enclosing go.mod.
+	for {
+		f := filepath.Join(dir, "go.work")
+		if fi, err := fsys.Stat(f); err == nil && !fi.IsDir() {
+			return f
+		}
+		d := filepath.Dir(dir)
+		if d == dir {
+			break
+		}
+		if d == cfg.GOROOT {
+			_ = TODOWorkspaces("If we end up checking in a go.work file to GOROOT/src," +
+				"remove this case.")
+			return "" // As a special case, don't cross GOROOT to find a go.work file.
 		}
 		dir = d
 	}
