@@ -83,11 +83,11 @@ func checkEnvWrite(key, val string) error {
 func updateEnvFile(add map[string]string, del map[string]bool) {
 	file, err := cfg.EnvFile()
 	if file == "" {
-		base.Fatalf("go env: cannot find go env config: %v", err)
+		base.Fatalf("go: cannot find go env config: %v", err)
 	}
 	data, err := os.ReadFile(file)
 	if err != nil && (!os.IsNotExist(err) || len(add) == 0) {
-		base.Fatalf("go env: reading go env config: %v", err)
+		base.Fatalf("go: reading go env config: %v", err)
 	}
 
 	lines := strings.SplitAfter(string(data), "\n")
@@ -145,7 +145,7 @@ func updateEnvFile(add map[string]string, del map[string]bool) {
 		os.MkdirAll(filepath.Dir(file), 0777)
 		err = os.WriteFile(file, data, 0666)
 		if err != nil {
-			base.Fatalf("go env: writing go env config: %v", err)
+			base.Fatalf("go: writing go env config: %v", err)
 		}
 	}
 }
