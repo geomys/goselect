@@ -7,7 +7,7 @@ package base
 import (
 	"flag"
 
-	"geomys.org/goup/internal/cmd/str"
+	"geomys.org/goup/internal/cmd/quoted"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/fsys"
 )
@@ -18,7 +18,7 @@ type StringsFlag []string
 
 func (v *StringsFlag) Set(s string) error {
 	var err error
-	*v, err = str.SplitQuotedFields(s)
+	*v, err = quoted.Split(s)
 	if *v == nil {
 		*v = []string{}
 	}

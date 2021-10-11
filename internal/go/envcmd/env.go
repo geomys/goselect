@@ -13,7 +13,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"geomys.org/goup/internal/cmd/str"
+	"geomys.org/goup/internal/cmd/quoted"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 )
@@ -56,7 +56,7 @@ func checkEnvWrite(key, val string) error {
 		if val == "" {
 			break
 		}
-		args, err := str.SplitQuotedFields(val)
+		args, err := quoted.Split(val)
 		if err != nil {
 			return fmt.Errorf("invalid %s: %v", key, err)
 		}
