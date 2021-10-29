@@ -66,9 +66,10 @@ func findWorkspaceFile(dir string) (root string) {
 			break
 		}
 		if d == cfg.GOROOT {
-			_ = TODOWorkspaces("If we end up checking in a go.work file to GOROOT/src," +
-				"remove this case.")
-			return "" // As a special case, don't cross GOROOT to find a go.work file.
+			// As a special case, don't cross GOROOT to find a go.work file.
+			// The standard library and commands built in go always use the vendored
+			// dependencies, so avoid using a most likely irrelevant go.work file.
+			return ""
 		}
 		dir = d
 	}
