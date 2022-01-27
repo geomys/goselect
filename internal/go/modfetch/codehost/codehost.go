@@ -13,12 +13,11 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
-
-	exec "geomys.org/goup/internal/std/execabs"
 
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/lockedfile"
