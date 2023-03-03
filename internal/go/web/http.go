@@ -15,6 +15,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io"
 	"mime"
 	"net"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 
 	"geomys.org/goup/internal/cmd/browser"
 	"geomys.org/goup/internal/go/auth"
+	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 )
 
@@ -193,6 +195,11 @@ func get(security SecurityMode, url *urlpkg.URL) (*Response, error) {
 			req.URL.Host = t.ToHost
 		}
 
+		release, err := base.AcquireNet()
+		if err != nil {
+			return nil, nil, err
+		}
+
 		var res *http.Response
 		if security == Insecure && url.Scheme == "https" { // fail earlier
 			res, err = impatientInsecureHTTPClient.Do(req)
@@ -204,6 +211,17 @@ func get(security SecurityMode, url *urlpkg.URL) (*Response, error) {
 				res, err = securityPreservingDefaultClient.Do(req)
 			}
 		}
+
+		if res == nil || res.Body == nil {
+			release()
+		} else {
+			body := res.Body
+			res.Body = hookCloser{
+				ReadCloser: body,
+				afterClose: release,
+			}
+		}
+
 		return url, res, err
 	}
 
@@ -357,4 +375,15 @@ func isLocalHost(u *urlpkg.URL) bool {
 		return true
 	}
 	return false
+}
+
+type hookCloser struct {
+	io.ReadCloser
+	afterClose func()
+}
+
+func (c hookCloser) Close() error {
+	err := c.ReadCloser.Close()
+	c.afterClose()
+	return err
 }
