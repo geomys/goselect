@@ -49,9 +49,9 @@ var (
 	traceFile *os.File
 	traceMu   sync.Mutex
 
-	gofsystrace      = godebug.New("gofsystrace")
-	gofsystracelog   = godebug.New("gofsystracelog")
-	gofsystracestack = godebug.New("gofsystracestack")
+	gofsystrace      = godebug.New("#gofsystrace")
+	gofsystracelog   = godebug.New("#gofsystracelog")
+	gofsystracestack = godebug.New("#gofsystracestack")
 )
 
 func init() {
