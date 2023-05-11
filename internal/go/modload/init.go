@@ -5,10 +5,12 @@
 package modload
 
 import (
+	"os"
 	"path/filepath"
 
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/fsys"
+	"geomys.org/goup/internal/go/search"
 )
 
 type Root int
@@ -28,6 +30,29 @@ const (
 	// make sense without a main module.
 	NeedRoot
 )
+
+// FindGoMod returns the name of the go.mod file for this command,
+// or the empty string if there isn't one.
+// Most code should use Init and Enabled rather than use this directly.
+// It is exported mainly for Go toolchain switching, which must process
+// the go.mod very early at startup.
+func FindGoMod(wd string) string {
+	modRoot := findModuleRoot(wd)
+	if modRoot == "" {
+		// GO111MODULE is 'auto', and we can't find a module root.
+		// Stay in GOPATH mode.
+		return ""
+	}
+	if search.InDir(modRoot, os.TempDir()) == "." {
+		// If you create /tmp/go.mod for experimenting,
+		// then any tests that create work directories under /tmp
+		// will find it and get modules when they're not expecting them.
+		// It's a bit of a peculiar thing to disallow but quite mysterious
+		// when it happens. See golang.org/issue/26708.
+		return ""
+	}
+	return filepath.Join(modRoot, "go.mod")
+}
 
 func findModuleRoot(dir string) (roots string) {
 	if dir == "" {
