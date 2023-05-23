@@ -18,14 +18,7 @@ import (
 	"geomys.org/goup/internal/go/cfg"
 )
 
-func checkEnvWrite(key, val string, envFile map[string]string, op rune) error {
-	_, inEnvFile := envFile[key]
-
-	// Always OK to delete something in the env file; maybe a different toolchain put it there.
-	if op == 'u' && inEnvFile {
-		return nil
-	}
-
+func checkEnvWrite(key, val string) error {
 	switch key {
 	case "GOEXE", "GOGCCFLAGS", "GOHOSTARCH", "GOHOSTOS", "GOMOD", "GOWORK", "GOTOOLDIR", "GOVERSION":
 		return fmt.Errorf("%s cannot be modified", key)
@@ -35,10 +28,8 @@ func checkEnvWrite(key, val string, envFile map[string]string, op rune) error {
 
 	// To catch typos and the like, check that we know the variable.
 	// If it's already in the env file, we assume it's known.
-	if !inEnvFile && !cfg.CanGetenv(key) {
-		if _, ok := envFile[key]; !ok {
-			return fmt.Errorf("unknown go command variable %s", key)
-		}
+	if !cfg.CanGetenv(key) {
+		return fmt.Errorf("unknown go command variable %s", key)
 	}
 
 	// Some variables can only have one of a few valid values. If set to an
