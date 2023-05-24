@@ -7,7 +7,6 @@ package gover
 import (
 	"runtime"
 	"strconv"
-	"strings"
 
 	"geomys.org/goup/internal/std/goversion"
 )
@@ -23,16 +22,10 @@ func Local() string {
 	if TestVersion != "" {
 		v = TestVersion
 	}
-	if strings.HasPrefix(v, "go") {
-		v := strings.TrimPrefix(v, "go")
-		// Some builds use custom suffixes; strip them.
-		if i := strings.IndexAny(v, " \t+-"); i >= 0 {
-			v = v[:i]
-		}
-		if IsValid(v) {
-			return v
-		}
+	if v := ToolchainVersion(v); v != "" {
+		return v
 	}
+
 	// Development branch. Use "Dev" version with just 1.N, no rc1 or .0 suffix.
 	return "1." + strconv.Itoa(goversion.Version)
 }
