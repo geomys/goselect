@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"geomys.org/goup/internal/go/base"
+	"golang.org/x/telemetry/counter"
 )
 
 // lookupCmd interprets the initial elements of args
@@ -79,6 +80,7 @@ func handleChdirFlag() {
 		_, dir, _ = strings.Cut(a, "=")
 		os.Args = slices.Delete(os.Args, used, used+1)
 	}
+	counter.Inc("cmd/go:flag-C")
 
 	if err := os.Chdir(dir); err != nil {
 		base.Fatalf("go: %v", err)
