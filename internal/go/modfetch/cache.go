@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync"
 
+	"geomys.org/goup/internal/cmd/telemetry"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/gover"
@@ -778,7 +779,7 @@ var (
 	statCacheOnce sync.Once
 	statCacheErr  error
 
-	counterErrorsGOMODCACHEEntryRelative = base.NewCounter("go/errors:gomodcache-entry-relative")
+	counterErrorsGOMODCACHEEntryRelative = telemetry.NewCounter("go/errors:gomodcache-entry-relative")
 )
 
 // checkCacheDir checks if the directory specified by GOMODCACHE exists. An
