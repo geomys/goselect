@@ -82,7 +82,7 @@ func checkEnvWrite(key, val string) error {
 }
 
 func readEnvFileLines(mustExist bool) []string {
-	file, err := cfg.EnvFile()
+	file, _, err := cfg.EnvFile()
 	if file == "" {
 		if mustExist {
 			base.Fatalf("go: cannot find go env config: %v", err)
@@ -146,7 +146,7 @@ func updateEnvFile(add map[string]string, del map[string]bool) {
 		}
 	}
 
-	file, err := cfg.EnvFile()
+	file, _, err := cfg.EnvFile()
 	if file == "" {
 		base.Fatalf("go: cannot find go env config: %v", err)
 	}
