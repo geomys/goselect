@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"geomys.org/goup/internal/cmd/telemetry"
+	"geomys.org/goup/internal/cmd/telemetry/counter"
 	"geomys.org/goup/internal/go/base"
 )
 
@@ -80,7 +80,7 @@ func handleChdirFlag() {
 		_, dir, _ = strings.Cut(a, "=")
 		os.Args = slices.Delete(os.Args, used, used+1)
 	}
-	telemetry.Inc("go/flag:C")
+	counter.Inc("go/flag:C")
 
 	if err := os.Chdir(dir); err != nil {
 		base.Fatalf("go: %v", err)

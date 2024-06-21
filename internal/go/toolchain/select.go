@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"strings"
 
-	"geomys.org/goup/internal/cmd/telemetry"
+	"geomys.org/goup/internal/cmd/telemetry/counter"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/gover"
@@ -82,7 +82,7 @@ func FilterEnv(env []string) []string {
 	return out
 }
 
-var counterErrorsInvalidToolchainInFile = telemetry.NewCounter("go/errors:invalid-toolchain-in-file")
+var counterErrorsInvalidToolchainInFile = counter.New("go/errors:invalid-toolchain-in-file")
 
 // Select invokes a different Go toolchain if directed by
 // the GOTOOLCHAIN environment variable or the user's configuration
@@ -253,7 +253,7 @@ func Select() {
 	Exec(gotoolchain)
 }
 
-var counterSelectExec = telemetry.NewCounter("go/toolchain/select-exec")
+var counterSelectExec = counter.New("go/toolchain/select-exec")
 
 // TestVersionSwitch is set in the test go binary to the value in $TESTGO_VERSION_SWITCH.
 // Valid settings are:

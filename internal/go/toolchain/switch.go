@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"geomys.org/goup/internal/cmd/telemetry"
+	"geomys.org/goup/internal/cmd/telemetry/counter"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/gover"
@@ -104,7 +104,7 @@ func (s *Switcher) Switch(ctx context.Context) {
 	panic("unreachable")
 }
 
-var counterSwitchExec = telemetry.NewCounter("go/toolchain/switch-exec")
+var counterSwitchExec = counter.New("go/toolchain/switch-exec")
 
 // SwitchOrFatal attempts a toolchain switch based on the information in err
 // and otherwise falls back to base.Fatal(err).
