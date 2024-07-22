@@ -21,12 +21,12 @@ import (
 	"sync"
 
 	"geomys.org/goup/internal/cmd/par"
+	"geomys.org/goup/internal/cmd/robustio"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/fsys"
 	"geomys.org/goup/internal/go/gover"
 	"geomys.org/goup/internal/go/lockedfile"
-	"geomys.org/goup/internal/go/robustio"
 	"geomys.org/goup/internal/go/str"
 	"geomys.org/goup/internal/go/trace"
 
