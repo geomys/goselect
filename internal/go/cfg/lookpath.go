@@ -7,7 +7,7 @@ package cfg
 import (
 	"os/exec"
 
-	"geomys.org/goup/internal/go/par"
+	"geomys.org/goup/internal/cmd/par"
 )
 
 var lookPathCache par.ErrCache[string, string]

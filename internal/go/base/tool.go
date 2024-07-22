@@ -10,8 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"geomys.org/goup/internal/cmd/par"
 	"geomys.org/goup/internal/go/cfg"
-	"geomys.org/goup/internal/go/par"
 )
 
 // Tool returns the path to the named tool (for example, "vet").

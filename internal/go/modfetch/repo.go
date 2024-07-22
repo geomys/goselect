@@ -13,9 +13,9 @@ import (
 	"strconv"
 	"time"
 
+	"geomys.org/goup/internal/cmd/par"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/modfetch/codehost"
-	"geomys.org/goup/internal/go/par"
 	"geomys.org/goup/internal/go/vcs"
 	web "geomys.org/goup/internal/go/web"
 

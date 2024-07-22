@@ -19,13 +19,13 @@ import (
 	"strings"
 	"sync"
 
+	"geomys.org/goup/internal/cmd/par"
 	"geomys.org/goup/internal/cmd/telemetry/counter"
 	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/gover"
 	"geomys.org/goup/internal/go/lockedfile"
 	"geomys.org/goup/internal/go/modfetch/codehost"
-	"geomys.org/goup/internal/go/par"
 	"geomys.org/goup/internal/go/robustio"
 
 	"golang.org/x/mod/module"
