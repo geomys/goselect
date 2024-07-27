@@ -7,6 +7,7 @@ package cfg
 import (
 	"testing"
 
+	"geomys.org/goup/internal/cmd/pathcache"
 	"geomys.org/goup/internal/std/testenv"
 )
 
@@ -14,7 +15,7 @@ func BenchmarkLookPath(b *testing.B) {
 	testenv.MustHaveExecPath(b, "go")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := LookPath("go")
+		_, err := pathcache.LookPath("go")
 		if err != nil {
 			b.Fatal(err)
 		}
