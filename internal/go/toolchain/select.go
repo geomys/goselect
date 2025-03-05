@@ -170,7 +170,7 @@ func Select() {
 	}
 
 	gotoolchain = minToolchain
-	if (mode == "auto" || mode == "path") && !goInstallVersion(minVers) {
+	if mode == "auto" || mode == "path" {
 		// Read go.mod to find new minimum and suggested toolchain.
 		file, goVers, toolchain := modGoToolchain()
 		gover.Startup.AutoFile = file
@@ -213,6 +213,7 @@ func Select() {
 			}
 			if gover.Compare(goVers, minVers) > 0 {
 				gotoolchain = "go" + goVers
+				minVers = goVers
 				// Starting with Go 1.21, the first released version has a .0 patch version suffix.
 				// Don't try to download a language version (sans patch component), such as go1.22.
 				// Instead, use the first toolchain of that language version, such as 1.22.0.
@@ -231,6 +232,7 @@ func Select() {
 				}
 			}
 		}
+		maybeSwitchForGoInstallVersion(minVers)
 	}
 
 	// If we are invoked as a target toolchain, confirm that
@@ -548,21 +550,21 @@ func modGoToolchain() (file, goVers, toolchain string) {
 	return file, gover.GoModLookup(data, "go"), gover.GoModLookup(data, "toolchain")
 }
 
-// goInstallVersion reports whether the command line is go install m@v or go run m@v.
-// If so, Select must not read the go.mod or go.work file in "auto" or "path" mode.
-func goInstallVersion(minVers string) bool {
+// maybeSwitchForGoInstallVersion reports whether the command line is go install m@v or go run m@v.
+// If so, switch to the go version required to build m@v if it's higher than minVers.
+func maybeSwitchForGoInstallVersion(minVers string) {
 	// Note: We assume there are no flags between 'go' and 'install' or 'run'.
 	// During testing there are some debugging flags that are accepted
 	// in that position, but in production go binaries there are not.
 	if len(os.Args) < 3 {
-		return false
+		return
 	}
 
 	var cmdFlags *flag.FlagSet
 	switch os.Args[1] {
 	default:
 		// Command doesn't support a pkg@version as the main module.
-		return false
+		return
 	case "install":
 		cmdFlags = &work.CmdInstall.Flag
 	case "run":
@@ -596,7 +598,7 @@ func goInstallVersion(minVers string) bool {
 		args = args[1:]
 		if a == "--" {
 			if len(args) == 0 {
-				return false
+				return
 			}
 			pkgArg = args[0]
 			break
@@ -617,7 +619,7 @@ func goInstallVersion(minVers string) bool {
 				val = "true"
 			}
 			if err := modcacherwVal.Set(val); err != nil {
-				return false
+				return
 			}
 			modcacherwSeen = true
 			continue
@@ -637,8 +639,8 @@ func goInstallVersion(minVers string) bool {
 				// because it is preceded by run flags and followed by arguments to the
 				// program being run. Since we don't know whether this flag takes
 				// an argument, we can't reliably identify the end of the run flags.
-				// Just give up and let the user clarify using the "=" form..
-				return false
+				// Just give up and let the user clarify using the "=" form.
+				return
 			}
 
 			// We would like to let 'go install -newflag pkg@version' work even
@@ -667,11 +669,11 @@ func goInstallVersion(minVers string) bool {
 	}
 
 	if !strings.Contains(pkgArg, "@") || build.IsLocalImport(pkgArg) || filepath.IsAbs(pkgArg) {
-		return false
+		return
 	}
 	path, version, _ := strings.Cut(pkgArg, "@")
 	if path == "" || version == "" || gover.IsToolchain(path) {
-		return false
+		return
 	}
 
 	if !modcacherwSeen && base.InGOFLAGS("-modcacherw") {
@@ -680,9 +682,8 @@ func goInstallVersion(minVers string) bool {
 		base.SetFromGOFLAGS(fs)
 	}
 
-	// It would be correct to simply return true here, bypassing use
-	// of the current go.mod or go.work, and let "go run" or "go install"
-	// do the rest, including a toolchain switch.
+	// It would be correct to do nothing here, and let "go run" or "go install"
+	// do the toolchain switch.
 	// Our goal instead is, since we have gone to the trouble of handling
 	// unknown flags to some degree, to run the switch now, so that
 	// these commands can switch to a newer toolchain directed by the
@@ -715,6 +716,4 @@ func goInstallVersion(minVers string) bool {
 			SwitchOrFatal(ctx, err)
 		}
 	}
-
-	return true // pkg@version found
 }
