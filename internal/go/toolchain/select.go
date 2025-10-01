@@ -286,6 +286,7 @@ func Select() {
 
 	counterSelectExec.Inc()
 	Exec(moduleLoaderState, gotoolchain)
+	panic("unreachable")
 }
 
 var counterSelectExec = counter.New("go/toolchain/select-exec")
@@ -352,12 +353,6 @@ func Exec(s *modload.State, gotoolchain string) {
 	if pathOnly {
 		base.Fatalf("cannot find %q in PATH", gotoolchain)
 	}
-
-	// Set up modules without an explicit go.mod, to download distribution.
-	s.Reset()
-	s.ForceUseModules = true
-	s.RootMode = modload.NoRoot
-	modload.Init(s)
 
 	// Download and unpack toolchain module into module cache.
 	// Note that multiple go commands might be doing this at the same time,
