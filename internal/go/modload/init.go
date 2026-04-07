@@ -9,8 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"geomys.org/goup/internal/go/base"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/fsys"
+	"geomys.org/goup/internal/go/modfetch"
 	"geomys.org/goup/internal/go/search"
 )
 
@@ -31,6 +33,73 @@ const (
 	// make sense without a main module.
 	NeedRoot
 )
+
+// FindGoWork returns the name of the go.work file for this command,
+// or the empty string if there isn't one.
+// Most code should use Init and Enabled rather than use this directly.
+// It is exported mainly for Go toolchain switching, which must process
+// the go.work very early at startup.
+func (ld *Loader) FindGoWork(wd string) string {
+	if ld.RootMode == NoRoot {
+		return ""
+	}
+
+	switch gowork := cfg.Getenv("GOWORK"); gowork {
+	case "off":
+		return ""
+	case "", "auto":
+		return findWorkspaceFile(wd)
+	default:
+		if !filepath.IsAbs(gowork) {
+			base.Fatalf("go: invalid GOWORK: not an absolute path")
+		}
+		return gowork
+	}
+}
+
+func NewLoader() *Loader {
+	s := new(Loader)
+	s.fetcher = modfetch.NewFetcher()
+	return s
+}
+
+func (ld *Loader) Fetcher() *modfetch.Fetcher {
+	return ld.fetcher
+}
+
+// WillBeEnabled checks whether modules should be enabled but does not
+// initialize modules by installing hooks. If Init has already been called,
+// WillBeEnabled returns the same result as Enabled.
+//
+// This function is needed to break a cycle. The main package needs to know
+// whether modules are enabled in order to install the module or GOPATH version
+// of 'go get', but Init reads the -modfile flag in 'go get', so it shouldn't
+// be called until the command is installed and flags are parsed. Instead of
+// calling Init and Enabled, the main package can call this function.
+func (ld *Loader) WillBeEnabled() bool {
+	if ld.modRoots != nil || cfg.ModulesEnabled {
+		// Already enabled.
+		return true
+	}
+	if ld.initialized {
+		// Initialized, not enabled.
+		return false
+	}
+
+	// Keep in sync with Init. Init does extra validation and prints warnings or
+	// exits, so it can't call this function directly.
+	env := cfg.Getenv("GO111MODULE")
+	switch env {
+	case "on", "":
+		return true
+	case "auto":
+		break
+	default:
+		return false
+	}
+
+	return FindGoMod(base.Cwd()) != "" || ld.FindGoWork(base.Cwd()) != ""
+}
 
 // FindGoMod returns the name of the go.mod file for this command,
 // or the empty string if there isn't one.
