@@ -1,0 +1,81 @@
+name: Build and upload binaries
+on:
+  release:
+    types: [published]
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - {GOOS: linux, GOARCH: amd64}
+          - {GOOS: linux, GOARCH: arm, GOARM: 6}
+          - {GOOS: linux, GOARCH: arm64}
+          - {GOOS: darwin, GOARCH: arm64}
+          - {GOOS: darwin, GOARCH: amd64}
+          - {GOOS: windows, GOARCH: amd64}
+          - {GOOS: windows, GOARCH: arm64}
+          - {GOOS: freebsd, GOARCH: amd64}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Build binary
+        run: |
+          VERSION="$(git describe --tags --always)"
+          DIR="$(mktemp -d)"
+          mkdir "$DIR/goup"
+          go build -o "$DIR/goup" -trimpath ./cmd/go
+          cp LICENSE "$DIR/goup/LICENSE"
+          if [ "$GOOS" == "windows" ]; then
+            ( cd "$DIR"; zip goup.zip -r goup )
+            mv "$DIR/goup.zip" "goup-$VERSION-$GOOS-$GOARCH.zip"
+          else
+            tar -cvzf "goup-$VERSION-$GOOS-$GOARCH.tar.gz" -C "$DIR" goup
+          fi
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+          GOARM: ${{ matrix.GOARM }}
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: goup-artifacts-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: goup-*
+  upload:
+    name: Upload and attest release artifacts
+    if: github.event_name == 'release'
+    needs: build
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download workflow artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: goup-artifacts-*
+          merge-multiple: true
+      - name: Generate artifacts attestation
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: goup-*
+      - name: Upload release artifacts
+        run: gh release upload "$GITHUB_REF_NAME" goup-*
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
