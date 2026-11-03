@@ -33,36 +33,11 @@ import (
 
 // useSumDB reports whether to use the Go checksum database for the given module.
 func useSumDB(mod module.Version) bool {
-	if mod.Path == "golang.org/toolchain" {
-		must := true
-		// Toolchain downloads must be verified against the checksum database,
-		// even if GOSUMDB=off or GONOSUMDB matches the pattern.
-		// If GOSUMDB=off, then the eventual lookup will fail
-		// with a good error message.
-
-		// Exception #1: using GOPROXY=file:// to test a distpack.
-		if strings.HasPrefix(cfg.GOPROXY, "file://") && !strings.ContainsAny(cfg.GOPROXY, ",|") {
-			must = false
-		}
-		// Exception #2: the Go proxy+checksum database cannot check itself
-		// while doing the initial download.
-		if strings.Contains(os.Getenv("GIT_HTTP_USER_AGENT"), "proxy.golang.org") {
-			must = false
-		}
-
-		// Another potential exception would be GOPROXY=direct,
-		// but that would make toolchain downloads only as secure
-		// as HTTPS, and in particular they'd be susceptible to MITM
-		// attacks on systems with less-than-trustworthy root certificates.
-		// The checksum database provides a stronger guarantee,
-		// so we don't make that exception.
-
-		// Otherwise, require the checksum database.
-		if must {
-			return true
-		}
-	}
-	return cfg.GOSUMDB != "off" && !module.MatchPrefixPatterns(cfg.GONOSUMDB, mod.Path)
+	// goup only downloads toolchains, and those must always be verified
+	// against the checksum database, regardless of GOSUMDB, GONOSUMDB, or
+	// GOPROXY. If GOSUMDB=off, the eventual lookup fails with a good error
+	// message.
+	return true
 }
 
 // lookupSumDB returns the Go checksum database's go.sum lines for the given module,
