@@ -14,6 +14,7 @@ import (
 	"net/url"
 	pathpkg "path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -60,10 +61,6 @@ type proxySpec struct {
 
 func proxyList() ([]proxySpec, error) {
 	proxyOnce.Do(func() {
-		if cfg.GONOPROXY != "" && cfg.GOPROXY != "direct" {
-			proxyOnce.list = append(proxyOnce.list, proxySpec{url: "noproxy"})
-		}
-
 		goproxy := cfg.GOPROXY
 		for goproxy != "" {
 			var url string
@@ -87,7 +84,13 @@ func proxyList() ([]proxySpec, error) {
 				break
 			}
 			if url == "direct" {
-				proxyOnce.list = append(proxyOnce.list, proxySpec{url: "direct"})
+				// goup only fetches golang.org/toolchain, which the go-import
+				// meta tag at golang.org serves from a module proxy, so "direct"
+				// stands for the Go module mirror.
+				const mirror = "https://proxy.golang.org"
+				if !slices.ContainsFunc(proxyOnce.list, func(p proxySpec) bool { return p.url == mirror }) {
+					proxyOnce.list = append(proxyOnce.list, proxySpec{url: mirror})
+				}
 				// For now, "direct" is the end of the line. We may decide to add some
 				// sort of fallback behavior for them in the future, so ignore
 				// subsequent entries for forward-compatibility.

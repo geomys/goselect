@@ -13,13 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"geomys.org/goup/internal/cmd/par"
 	"geomys.org/goup/internal/go/cfg"
 	"geomys.org/goup/internal/go/modfetch/codehost"
-	"geomys.org/goup/internal/go/vcs"
-	web "geomys.org/goup/internal/go/web"
-
-	"golang.org/x/mod/module"
 )
 
 const traceRepo = false // trace all repo actions, for debugging
@@ -216,37 +211,6 @@ func (f *Fetcher) Lookup(ctx context.Context, proxy, path string) Repo {
 	})
 }
 
-var lookupLocalCache = new(par.Cache[string, Repo]) // path, Repo
-
-// LookupLocal returns a Repo that accesses local VCS information.
-//
-// codeRoot is the module path of the root module in the repository.
-// path is the module path of the module being looked up.
-// dir is the file system path of the repository containing the module.
-func (f *Fetcher) LookupLocal(ctx context.Context, codeRoot string, path string, dir string) Repo {
-	if traceRepo {
-		defer logCall("LookupLocal(%q)", path)()
-	}
-
-	return lookupLocalCache.Do(path, func() Repo {
-		return newCachingRepo(ctx, f, path, func(ctx context.Context) (Repo, error) {
-			repoDir, vcsCmd, err := vcs.FromDir(dir, "")
-			if err != nil {
-				return nil, err
-			}
-			code, err := lookupCodeRepo(ctx, &vcs.RepoRoot{Repo: repoDir, Root: repoDir, VCS: vcsCmd}, true)
-			if err != nil {
-				return nil, err
-			}
-			r, err := newCodeRepo(code, codeRoot, "", path)
-			if err == nil && traceRepo {
-				r = newLoggingRepo(r)
-			}
-			return r, err
-		})
-	})
-}
-
 // lookup returns the module with the given module path.
 func lookup(fetcher_ *Fetcher, ctx context.Context, proxy, path string) (r Repo, err error) {
 	if cfg.BuildMod == "vendor" {
@@ -258,20 +222,9 @@ func lookup(fetcher_ *Fetcher, ctx context.Context, proxy, path string) (r Repo,
 		return &toolchainRepo{path, fetcher_.Lookup(ctx, proxy, "golang.org/toolchain")}, nil
 	}
 
-	if module.MatchPrefixPatterns(cfg.GONOPROXY, path) {
-		switch proxy {
-		case "noproxy", "direct":
-			return lookupDirect(ctx, path)
-		default:
-			return nil, errNoproxy
-		}
-	}
-
 	switch proxy {
 	case "off":
 		return errRepo{path, errProxyOff}, nil
-	case "direct":
-		return lookupDirect(ctx, path)
 	case "noproxy":
 		return nil, errUseProxy
 	default:
@@ -295,41 +248,6 @@ var (
 	errNoproxy  error = notExistErrorf("disabled by GOPRIVATE/GONOPROXY")
 	errUseProxy error = notExistErrorf("path does not match GOPRIVATE/GONOPROXY")
 )
-
-func lookupDirect(ctx context.Context, path string) (Repo, error) {
-	security := web.SecureOnly
-
-	if module.MatchPrefixPatterns(cfg.GOINSECURE, path) {
-		security = web.Insecure
-	}
-	rr, err := vcs.RepoRootForImportPath(path, vcs.PreferMod, security)
-	if err != nil {
-		// We don't know where to find code for a module with this path.
-		return nil, notExistError{err: err}
-	}
-
-	if rr.VCS.Name == "mod" {
-		// Fetch module from proxy with base URL rr.Repo.
-		return newProxyRepo(rr.Repo, path)
-	}
-
-	code, err := lookupCodeRepo(ctx, rr, false)
-	if err != nil {
-		return nil, err
-	}
-	return newCodeRepo(code, rr.Root, rr.SubDir, path)
-}
-
-func lookupCodeRepo(ctx context.Context, rr *vcs.RepoRoot, local bool) (codehost.Repo, error) {
-	code, err := codehost.NewRepo(ctx, rr.VCS.Cmd, rr.Repo, local)
-	if err != nil {
-		if _, ok := err.(*codehost.VCSError); ok {
-			return nil, err
-		}
-		return nil, fmt.Errorf("lookup %s: %v", rr.Root, err)
-	}
-	return code, nil
-}
 
 // A loggingRepo is a wrapper around an underlying Repo
 // that prints a log message at the start and end of each call.
