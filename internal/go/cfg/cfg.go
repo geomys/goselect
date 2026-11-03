@@ -20,11 +20,8 @@ import (
 	"sync"
 	"time"
 
-	"geomys.org/goup/internal/std/buildcfg"
 	"geomys.org/goup/internal/std/cfg"
-	"geomys.org/goup/internal/std/platform"
 
-	"geomys.org/goup/internal/cmd/pathcache"
 	"geomys.org/goup/internal/go/fsys"
 )
 
@@ -134,56 +131,6 @@ func defaultContext() build.Context {
 	}
 	ctxt.ToolTags = save
 
-	// The go/build rule for whether cgo is enabled is:
-	//  1. If $CGO_ENABLED is set, respect it.
-	//  2. Otherwise, if this is a cross-compile, disable cgo.
-	//  3. Otherwise, use built-in default for GOOS/GOARCH.
-	//
-	// Recreate that logic here with the new GOOS/GOARCH setting.
-	// We need to run steps 2 and 3 to determine what the default value
-	// of CgoEnabled would be for computing CGOChanged.
-	defaultCgoEnabled := false
-	if buildcfg.DefaultCGO_ENABLED == "1" {
-		defaultCgoEnabled = true
-	} else if buildcfg.DefaultCGO_ENABLED == "0" {
-	} else if runtime.GOARCH == ctxt.GOARCH && runtime.GOOS == ctxt.GOOS {
-		defaultCgoEnabled = platform.CgoSupported(ctxt.GOOS, ctxt.GOARCH)
-		// Use built-in default cgo setting for GOOS/GOARCH.
-		// Note that ctxt.GOOS/GOARCH are derived from the preference list
-		// (1) environment, (2) go/env file, (3) runtime constants,
-		// while go/build.Default.GOOS/GOARCH are derived from the preference list
-		// (1) environment, (2) runtime constants.
-		//
-		// We know ctxt.GOOS/GOARCH == runtime.GOOS/GOARCH;
-		// no matter how that happened, go/build.Default will make the
-		// same decision (either the environment variables are set explicitly
-		// to match the runtime constants, or else they are unset, in which
-		// case go/build falls back to the runtime constants), so
-		// go/build.Default.GOOS/GOARCH == runtime.GOOS/GOARCH.
-		// So ctxt.CgoEnabled (== go/build.Default.CgoEnabled) is correct
-		// as is and can be left unmodified.
-		//
-		// All that said, starting in Go 1.20 we layer one more rule
-		// on top of the go/build decision: if CC is unset and
-		// the default C compiler we'd look for is not in the PATH,
-		// we automatically default cgo to off.
-		// This makes go builds work automatically on systems
-		// without a C compiler installed.
-		if ctxt.CgoEnabled {
-			if os.Getenv("CC") == "" {
-				cc := DefaultCC(ctxt.GOOS, ctxt.GOARCH)
-				if _, err := pathcache.LookPath(cc); err != nil {
-					defaultCgoEnabled = false
-				}
-			}
-		}
-	}
-	ctxt.CgoEnabled = defaultCgoEnabled
-	if v := Getenv("CGO_ENABLED"); v == "0" || v == "1" {
-		ctxt.CgoEnabled = v[0] == '1'
-	}
-	CGOChanged = ctxt.CgoEnabled != defaultCgoEnabled
-
 	ctxt.OpenFile = func(path string) (io.ReadCloser, error) {
 		return fsys.Open(path)
 	}
@@ -206,34 +153,6 @@ func defaultContext() build.Context {
 
 func init() {
 	SetGOROOT(Getenv("GOROOT"), false)
-}
-
-// ForceHost forces GOOS and GOARCH to runtime.GOOS and runtime.GOARCH.
-// This is used by go tool to build tools for the go command's own
-// GOOS and GOARCH.
-func ForceHost() {
-	Goos = runtime.GOOS
-	Goarch = runtime.GOARCH
-	ExeSuffix = exeSuffix()
-	GO386 = buildcfg.DefaultGO386
-	GOAMD64 = buildcfg.DefaultGOAMD64
-	GOARM = buildcfg.DefaultGOARM
-	GOARM64 = buildcfg.DefaultGOARM64
-	GOMIPS = buildcfg.DefaultGOMIPS
-	GOMIPS64 = buildcfg.DefaultGOMIPS64
-	GOPPC64 = buildcfg.DefaultGOPPC64
-	GORISCV64 = buildcfg.DefaultGORISCV64
-	GOWASM = ""
-
-	// Recompute the build context using Goos and Goarch to
-	// set the correct value for ctx.CgoEnabled.
-	BuildContext = defaultContext()
-	// Call SetGOROOT to properly set the GOROOT on the new context.
-	SetGOROOT(Getenv("GOROOT"), false)
-	// Recompute experiments: the settings determined depend on GOOS and GOARCH.
-	// This will also update the BuildContext's tool tags to include the new
-	// experiment tags.
-	computeExperiment()
 }
 
 // SetGOROOT sets GOROOT and associated variables to the given values.
@@ -285,40 +204,6 @@ func SetGOROOT(goroot string, isTestGo bool) {
 	}
 }
 
-// Experiment configuration.
-var (
-	// RawGOEXPERIMENT is the GOEXPERIMENT value set by the user.
-	RawGOEXPERIMENT = envOr("GOEXPERIMENT", buildcfg.DefaultGOEXPERIMENT)
-	// CleanGOEXPERIMENT is the minimal GOEXPERIMENT value needed to reproduce the
-	// experiments enabled by RawGOEXPERIMENT.
-	CleanGOEXPERIMENT = RawGOEXPERIMENT
-
-	Experiment    *buildcfg.ExperimentFlags
-	ExperimentErr error
-)
-
-func init() {
-	computeExperiment()
-}
-
-func computeExperiment() {
-	Experiment, ExperimentErr = buildcfg.ParseGOEXPERIMENT(Goos, Goarch, RawGOEXPERIMENT)
-	if ExperimentErr != nil {
-		return
-	}
-
-	// GOEXPERIMENT is valid, so convert it to canonical form.
-	CleanGOEXPERIMENT = Experiment.String()
-
-	// Add build tags based on the experiments in effect.
-	exps := Experiment.Enabled()
-	expTags := make([]string, 0, len(exps)+len(BuildContext.ToolTags))
-	for _, exp := range exps {
-		expTags = append(expTags, "goexperiment."+exp)
-	}
-	BuildContext.ToolTags = append(expTags, BuildContext.ToolTags...)
-}
-
 // An EnvVar is an environment variable Name=Value.
 type EnvVar struct {
 	Name    string
@@ -365,10 +250,10 @@ func initEnvCache() {
 	if file, _, _ := EnvFile(); file != "" {
 		readEnvFile(file, "user")
 	}
-	goroot := findGOROOT(envCache.m["GOROOT"])
-	if goroot != "" {
-		readEnvFile(filepath.Join(goroot, "go.env"), "GOROOT")
-	}
+	// There is no GOROOT. The defaults that would be in $GOROOT/go.env are
+	// embedded in the binary instead.
+	goroot := ""
+	parseEnvData(goEnv, "GOROOT")
 
 	// Save the goroot for func init calling SetGOROOT,
 	// and also overwrite anything that might have been in go.env.
@@ -385,7 +270,10 @@ func readEnvFile(file string, source string) {
 	if err != nil {
 		return
 	}
+	parseEnvData(data, source)
+}
 
+func parseEnvData(data []byte, source string) {
 	for len(data) > 0 {
 		// Get next line.
 		line := data
@@ -465,26 +353,9 @@ var (
 	GOCACHEPROG, GOCACHEPROGChanged = EnvOrAndChanged("GOCACHEPROG", "")
 	GOMODCACHE, GOMODCACHEChanged   = EnvOrAndChanged("GOMODCACHE", gopathDir("pkg/mod"))
 
-	// Used in envcmd.MkEnv and build ID computations.
-	GOARM64, goARM64Changed     = EnvOrAndChanged("GOARM64", buildcfg.DefaultGOARM64)
-	GOARM, goARMChanged         = EnvOrAndChanged("GOARM", buildcfg.DefaultGOARM)
-	GO386, go386Changed         = EnvOrAndChanged("GO386", buildcfg.DefaultGO386)
-	GOAMD64, goAMD64Changed     = EnvOrAndChanged("GOAMD64", buildcfg.DefaultGOAMD64)
-	GOMIPS, goMIPSChanged       = EnvOrAndChanged("GOMIPS", buildcfg.DefaultGOMIPS)
-	GOMIPS64, goMIPS64Changed   = EnvOrAndChanged("GOMIPS64", buildcfg.DefaultGOMIPS64)
-	GOPPC64, goPPC64Changed     = EnvOrAndChanged("GOPPC64", buildcfg.DefaultGOPPC64)
-	GORISCV64, goRISCV64Changed = EnvOrAndChanged("GORISCV64", buildcfg.DefaultGORISCV64)
-	GOWASM, goWASMChanged       = EnvOrAndChanged("GOWASM", fmt.Sprint(buildcfg.GOWASM))
-
-	GOFIPS140, GOFIPS140Changed = EnvOrAndChanged("GOFIPS140", buildcfg.DefaultGOFIPS140)
-	GOPROXY, GOPROXYChanged     = EnvOrAndChanged("GOPROXY", "")
-	GOSUMDB, GOSUMDBChanged     = EnvOrAndChanged("GOSUMDB", "")
-	GOPRIVATE                   = Getenv("GOPRIVATE")
-	GONOPROXY, GONOPROXYChanged = EnvOrAndChanged("GONOPROXY", GOPRIVATE)
-	GONOSUMDB, GONOSUMDBChanged = EnvOrAndChanged("GONOSUMDB", GOPRIVATE)
-	GOINSECURE                  = Getenv("GOINSECURE")
-	GOVCS                       = Getenv("GOVCS")
-	GOAUTH, GOAUTHChanged       = EnvOrAndChanged("GOAUTH", "netrc")
+	GOPROXY, GOPROXYChanged = EnvOrAndChanged("GOPROXY", "")
+	GOSUMDB, GOSUMDBChanged = EnvOrAndChanged("GOSUMDB", "")
+	GOAUTH, GOAUTHChanged   = EnvOrAndChanged("GOAUTH", "netrc")
 )
 
 // EnvOrAndChanged returns the environment variable value
@@ -504,34 +375,6 @@ func EnvOrAndChanged(name, def string) (v string, changed bool) {
 }
 
 var SumdbDir = gopathDir("pkg/sumdb")
-
-// GetArchEnv returns the name and setting of the
-// GOARCH-specific architecture environment variable.
-// If the current architecture has no GOARCH-specific variable,
-// GetArchEnv returns empty key and value.
-func GetArchEnv() (key, val string, changed bool) {
-	switch Goarch {
-	case "arm":
-		return "GOARM", GOARM, goARMChanged
-	case "arm64":
-		return "GOARM64", GOARM64, goARM64Changed
-	case "386":
-		return "GO386", GO386, go386Changed
-	case "amd64":
-		return "GOAMD64", GOAMD64, goAMD64Changed
-	case "mips", "mipsle":
-		return "GOMIPS", GOMIPS, goMIPSChanged
-	case "mips64", "mips64le":
-		return "GOMIPS64", GOMIPS64, goMIPS64Changed
-	case "ppc64", "ppc64le":
-		return "GOPPC64", GOPPC64, goPPC64Changed
-	case "riscv64":
-		return "GORISCV64", GORISCV64, goRISCV64Changed
-	case "wasm":
-		return "GOWASM", GOWASM, goWASMChanged
-	}
-	return "", "", false
-}
 
 // envOr returns Getenv(key) if set, or else def.
 func envOr(key, def string) string {
