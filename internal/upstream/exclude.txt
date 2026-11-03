@@ -1,0 +1,10 @@
+# Files of the kept directories that goup doesn't use, after the renames in
+# paths.txt. See pull.sh.
+
+# Fetching modules from version control systems.
+internal/go/modfetch/coderepo.go
+internal/go/modfetch/coderepo_test.go
+regex:^internal/go/modfetch/codehost/(?!codehost\.go$)
+
+# Checks of real module zip hashes, over the network.
+internal/go/modfetch/zip_sum_test/

@@ -1,0 +1,38 @@
+# Paths of the Go repository that goup is built from, followed by the
+# renames that move them to their goup locations. See pull.sh.
+
+src/cmd/go/internal/auth/
+src/cmd/go/internal/base/
+src/cmd/go/internal/cfg/
+src/cmd/go/internal/fsys/
+src/cmd/go/internal/gover/
+src/cmd/go/internal/lockedfile/
+src/cmd/go/internal/modfetch/
+src/cmd/go/internal/str/
+src/cmd/go/internal/toolchain/
+src/cmd/go/internal/web/
+
+# Of these files, only a few declarations are kept by internal/upstream/rewrite.
+src/cmd/go/internal/envcmd/env.go
+src/cmd/go/internal/modload/init.go
+src/cmd/go/internal/search/search.go
+src/cmd/go/main.go
+
+src/cmd/internal/browser/
+src/cmd/internal/par/
+src/cmd/internal/pathcache/
+src/cmd/internal/quoted/
+src/cmd/internal/robustio/
+
+src/internal/cfg/
+src/internal/gover/
+src/internal/txtar/
+
+go.env
+LICENSE
+
+src/cmd/go/internal/==>internal/go/
+src/cmd/internal/==>internal/cmd/
+src/internal/==>internal/std/
+src/cmd/go/main.go==>cmd/go/chdir.go
+go.env==>internal/go/cfg/go.env
