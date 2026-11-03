@@ -524,12 +524,23 @@ func TestErrors(t *testing.T) {
 	e.write("m/go.mod", "module m\n\ngo 1.21\n")
 	e.write("new/go.mod", "module m\n\ngo 1.99.0\n")
 	e.fail("m", env("GOTOOLCHAIN=local"), args("version"), "GOTOOLCHAIN=local is not supported")
-	e.fail("m", env("GO111MODULE=off"), args("version"), "GOPATH mode is not supported (GO111MODULE=off)")
-	e.fail("", env("GO111MODULE=auto"), args("version"), "GOPATH mode is not supported (GO111MODULE=auto)")
 	e.fail("m", env("GOTOOLCHAIN=bash"), args("version"), `invalid GOTOOLCHAIN "bash"`)
 	e.fail("new", nil, args("version"), "download go1.99.0 for "+runtime.GOOS+"/"+runtime.GOARCH+": toolchain not available")
 	// In module mode, GO111MODULE=auto works.
 	e.ok("m", env("GO111MODULE=auto"), args("version"), "fake go1.21.0")
+}
+
+func TestGOPATHMode(t *testing.T) {
+	e := newTestEnv(t)
+	e.write("m/go.mod", "module m\n\ngo 1.27.3\n")
+	e.ok("m", nil, args("version"), "fake go1.27.3 args=[version] target=[go1.27.3]")
+	// The toolchain is selected as in module mode, and runs without
+	// GOTOOLCHAIN_INTERNAL_SWITCH_VERSION, which it wouldn't clear.
+	e.ok("m", env("GO111MODULE=off"), args("list -e -f {{context.ReleaseTags}} -- unsafe"),
+		"fake go1.27.3 args=[list -e -f {{context.ReleaseTags}} -- unsafe] target=[]")
+	e.ok("", env("GO111MODULE=auto"), args("version"), "fake go1.26.10 args=[version] target=[]")
+	e.ok("", env("GO111MODULE=off", "GOTOOLCHAIN=go1.27.0"), args("version"), "fake go1.27.0 args=[version] target=[]")
+	e.fail("m", env("GO111MODULE=off", "GOTOOLCHAIN_INTERNAL_SWITCH_COUNT=100"), args("version"), "too many toolchain switches")
 }
 
 func TestEnvGOTOOLCHAIN(t *testing.T) {

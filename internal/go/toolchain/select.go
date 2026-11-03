@@ -98,8 +98,10 @@ func Select() {
 	defer log.SetPrefix("")
 
 	if !moduleLoader.WillBeEnabled() {
-		// There is no local toolchain to run in GOPATH mode.
-		base.Fatalf("GOPATH mode is not supported (GO111MODULE=%s)", cfg.Getenv("GO111MODULE"))
+		// There is no local toolchain to run in GOPATH mode, so select one
+		// as in module mode, which then runs in GOPATH mode. Tools such as
+		// golang.org/x/tools/go/packages run go commands with GO111MODULE=off.
+		gopathMode = true
 	}
 
 	// As a special case, let "go env GOTOOLCHAIN" and "go env -w GOTOOLCHAIN=..."
@@ -300,6 +302,9 @@ var counterSelectExec = counter.New("go/toolchain/select-exec")
 //	"mismatch" - like "switch" but forget to set TESTGO_VERSION, so it looks like we invoked a mismatched toolchain
 //	"loop" - like "mismatch" but forget the target check, causing a toolchain switching loop
 var TestVersionSwitch string
+
+// gopathMode reports whether the selected toolchain will run in GOPATH mode.
+var gopathMode bool
 
 // Exec invokes the specified Go toolchain or else prints an error and exits the process.
 // If $GOTOOLCHAIN is set to path or min+path, Exec only considers the PATH
