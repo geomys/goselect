@@ -4,13 +4,6 @@
 
 package gover
 
-import (
-	"runtime"
-	"strconv"
-
-	"geomys.org/goup/internal/std/goversion"
-)
-
 // TestVersion is initialized in the go command test binary
 // to be $TESTGO_VERSION, to allow tests to override the
 // go command's idea of its own version as returned by Local.
@@ -29,15 +22,11 @@ func LocalToolchain() string {
 }
 
 func local() (goVers, toolVers string) {
-	toolVers = runtime.Version()
 	if TestVersion != "" {
-		toolVers = TestVersion
+		return FromToolchain(TestVersion), TestVersion
 	}
-	goVers = FromToolchain(toolVers)
-	if goVers == "" {
-		// Development branch. Use "Dev" version with just 1.N, no rc1 or .0 suffix.
-		goVers = "1." + strconv.Itoa(goversion.Version)
-		toolVers = "go" + goVers
-	}
-	return goVers, toolVers
+	// goup has no local toolchain. The empty version compares lower
+	// than every valid version, so the local toolchain is never chosen to
+	// satisfy a requirement, and nothing is ever "already" running.
+	return "", ""
 }
