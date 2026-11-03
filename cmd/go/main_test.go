@@ -387,6 +387,24 @@ func TestPathMode(t *testing.T) {
 	}
 }
 
+func TestPathModeNotExecutable(t *testing.T) {
+	e := newTestEnv(t)
+	e.pathToolchain("go1.27.3")
+	// Symlinks have permission bits of their own, which don't matter.
+	bin := filepath.Join(e.root, "bin")
+	if err := os.Symlink(filepath.Join(e.root, "missing"), filepath.Join(bin, "go1.26.10")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(e.root, "go1.26.9"), []byte("#!/bin/sh\n"), 0o666); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(e.root, "go1.26.9"), filepath.Join(bin, "go1.26.9")); err != nil {
+		t.Fatal(err)
+	}
+	e.ok("", env("GOTOOLCHAIN=path", "GODEBUG=toolchaintrace=1"), args("version"),
+		"go: default toolchain set to go1.27.3 from the toolchains in PATH", "path go1.27.3")
+}
+
 func TestChdir(t *testing.T) {
 	e := newTestEnv(t)
 	e.write("a/go.mod", "module a\n\ngo 1.26.9\n")

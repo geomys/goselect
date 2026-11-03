@@ -5,32 +5,24 @@ package windows
 import (
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 const (
-	ERROR_SHARING_VIOLATION syscall.Errno = 32
+	ERROR_SHARING_VIOLATION = windows.ERROR_SHARING_VIOLATION
 
-	LOCKFILE_EXCLUSIVE_LOCK = 0x00000002
+	LOCKFILE_EXCLUSIVE_LOCK = windows.LOCKFILE_EXCLUSIVE_LOCK
 )
 
-var (
-	modkernel32      = syscall.NewLazyDLL("kernel32.dll")
-	procLockFileEx   = modkernel32.NewProc("LockFileEx")
-	procUnlockFileEx = modkernel32.NewProc("UnlockFileEx")
-)
+// LockFileEx and UnlockFileEx take syscall types, like their counterparts in
+// the standard library. windows.Overlapped has the same layout as
+// syscall.Overlapped.
 
 func LockFileEx(file syscall.Handle, flags uint32, reserved uint32, bytesLow uint32, bytesHigh uint32, overlapped *syscall.Overlapped) error {
-	r1, _, e1 := syscall.SyscallN(procLockFileEx.Addr(), uintptr(file), uintptr(flags), uintptr(reserved), uintptr(bytesLow), uintptr(bytesHigh), uintptr(unsafe.Pointer(overlapped)))
-	if r1 == 0 {
-		return e1
-	}
-	return nil
+	return windows.LockFileEx(windows.Handle(file), flags, reserved, bytesLow, bytesHigh, (*windows.Overlapped)(unsafe.Pointer(overlapped)))
 }
 
 func UnlockFileEx(file syscall.Handle, reserved uint32, bytesLow uint32, bytesHigh uint32, overlapped *syscall.Overlapped) error {
-	r1, _, e1 := syscall.SyscallN(procUnlockFileEx.Addr(), uintptr(file), uintptr(reserved), uintptr(bytesLow), uintptr(bytesHigh), uintptr(unsafe.Pointer(overlapped)))
-	if r1 == 0 {
-		return e1
-	}
-	return nil
+	return windows.UnlockFileEx(windows.Handle(file), reserved, bytesLow, bytesHigh, (*windows.Overlapped)(unsafe.Pointer(overlapped)))
 }

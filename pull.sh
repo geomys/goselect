@@ -30,8 +30,10 @@ fi
 git -c advice.detachedHead=false clone --no-checkout --single-branch "${REFERENCE[@]}" \
 	-b "$TAG" https://go.googlesource.com/go.git "$WORK/go"
 
-# goup requires the version of golang.org/x/mod vendored in cmd.
-XMOD="$(git -C "$WORK/go" show HEAD:src/cmd/go.mod | awk '$1 == "golang.org/x/mod" { print $2 }')"
+# goup requires the versions of golang.org/x/mod and golang.org/x/sys
+# vendored in cmd.
+REQUIRE="$(git -C "$WORK/go" show HEAD:src/cmd/go.mod |
+	awk '$1 == "golang.org/x/mod" || $1 == "golang.org/x/sys" { printf " -require=%s@%s", $1, $2 }')"
 
 # git filter-repo fails to parse multi-line values in the global git config,
 # which the temporary clone doesn't need anyway.
@@ -78,5 +80,5 @@ git -C "$ROOT" update-ref "refs/heads/upstream/$TAG" FETCH_HEAD
 echo
 echo "Fetched rewritten upstream history up to $TAG. Merge with:"
 echo -e "\tjj new main upstream/$TAG"
-echo "and update golang.org/x/mod to the version vendored in cmd with:"
-echo -e "\tgo mod edit -require=golang.org/x/mod@$XMOD"
+echo "and update golang.org/x/mod and golang.org/x/sys to the versions vendored in cmd with:"
+echo -e "\tgo mod edit$REQUIRE"
